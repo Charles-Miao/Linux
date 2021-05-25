@@ -1,0 +1,738 @@
+三剑客命令
+grep	过滤筛选信息
+sed	修改替换文件内容，擅长对文件中的行进行操作
+awk	擅长统计分析文件内容，擅长对文件中列进行操作
+
+筛选
+grep "oldboy" /oldboy/test.txt
+筛选前一行
+grep -B 1 "oldgirl" /oldboy/test.txt
+筛选后一行
+grep -A 1 "oldgirl" /oldboy/test.txt
+筛选前一行和后一行
+grep -C 1 "oldgirl" /oldboy/test.txt
+统计出现几次
+grep -c "oldgirl" /oldboy/test.txt
+
+sed -n  "/oldboy/p" /oldboy/test.txt
+p，print	将过滤信息输出
+-n	取消源文件的所有内容输出（取消默认输出）
+
+awk "/oldboy/" /oldboy/test.txt
+
+修改文件部分内容信息
+sed 's#oldboy#python#g' /oldboy/test.txt，假装修改
+sed -i 's#oldboy#python#g' /oldboy/test.txt，真修改
+将文件中的123替换为abc（一对一替换，不太好理解），假替换  
+tr "123" "abc" < /oldboy/test01.txt
+
+day13 系统文件属性
+tail命令参数 -f 或者 -F
+-f：文件被删除或移走，需要进行重新追踪
+-F：文件被删除或移走，不需要进行重新追踪，只要文件恢复回来会继续追踪
+
+yum erase cowsay -y，不建议使用，会直接删除依赖包
+rpm -e cowsay --nodeps，推荐使用，不检查依赖直接删除，不会删除依赖包
+
+echo 123456 | passwd --stdin oldboy，免交互创建密码
+
+操作系统文件属性概念
+ls -li
+6407 -rw-rw-r--. 1 charles charles      145 11月 24 16:15 test.txt
+1. 6407，文件数据的inode信息，index node，索引节点，快速从磁盘中找到数据信息
+2. -，文件数据类型，文件、目录、连接文件、设备文件
+3. rw-rw-r--，权限位信息，r读，w写，x执行
+4. 1，文件目录的硬连接数，类似于超市的多个门
+5. charles，文件所属用户信息，文件的创建者或拥有者
+6. charles，文件所属组信息，文件或数据的所属用户组
+7. 145，文件大小信息
+8. 11月24 16:15，时间信息
+9. test.txt，文件名称
+1~8为文件属性
+9为文件名称
+
+文件属性详细说明--文件类型
+1. 文件类型概念
+windows使用扩展名进行区分
+linux不使用扩展名进行区分
+2. linux系统区分文件类型方法
+a 颜色区分
+b 利用属性信息区分
+c 利用特殊命令区分
+file /oldboy/test.txt
+3. 常见文件类型
+d，目录
+-，普通文件
+	text，纯文本文件，可编辑
+	binary，二进制文件，命令文件，不可编辑
+	data，数据型文件，压缩文件
+l，链接文件，快捷方式
+ln -s /oldboy/oldboy.txt /oldboy/oldboy_link.txt，创建软链接
+ln，link
+-s，soft
+c/b，块文件、字符文件（设备文件）
+s，socket文件
+4. 扩展命令说明
+file /etc/hosts，查看文件类型
+which，显示命令所在目录
+whereis，显示文件所在目录，以及相关帮助手册
+locate ifcfg-eth0，查看配置档案所在目录
+updatedb，建立文件和目录结构对应关系，便于检索
+	yum provides locate，查找命令属于哪个大礼包
+	yum install -y mlocate
+	updatedb
+find /etc -type f -name "ifcfg-eth0"
+find 找寻的路径范围 -type 类型信息 -name “文件名称”
+find /etc -type f -name "ifcfg*"
+
+day14 系统文件属性
+find /etc -type f -iname "ifcfg*"，忽略大小写
+find /oldboy -type f -size +100，大于100k的文件
+find /oldboy -type f -size -100，小于100k的文件
+find /oldboy -type f -size +1M，大于1M的文件
+find /oldboy -maxdepth 1 -type f -name "oldboy"，深入一层找数据
+
+tree /oldboy，显示指定目录中的所有数据和所有结构信息
+tree -L 2 /，查看目录层级为2的文件
+tree -d /oldboy，只显示目录
+
+tar zcvf /oldboy/oldboy.tar.gz /oldboy/odlyboy
+z 压缩方式为zip
+c 创建
+v 显示压缩过程
+f 指定压缩包文件路径信息
+
+tar zxvf /oldboy/oldboy.tar.gz
+x 提取
+
+diff path1 path2
+vimdiff path1 path2
+
+在不解压的情况下查看压缩包里的数据
+tar tf /oldboy/oldboy.tar.gz
+
+在压缩过程中排除指定，要么全部使用绝对路径，要么全部使用相对路径
+tar zcvf /tmp/oldboy.tar.gz ./oldboy --exclude=./oldboy/oldboy.txt
+多个文件排除
+tar zcvf /etm/oldboy.tar.gz /oldboy --exclude-from=/tmp/exclude.txt
+
+文件属性信息详细说明--文件权限
+r	读权限	4
+w	写权限	2
+x	执行权限	1
+-	没有权限
+
+属主权限、属组权限、其他用户权限
+
+超级管理员用户	uid：0
+虚拟用户		uid：1~999	管理进程，不能用于登录
+普通用户		uid：1000+
+
+保护root
+1. 修改远程连接端口，修改/etc/ssh/sshd_config
+2. 禁止root用户远程登录，修改/etc/ssh/sshd_config（普通用户登录再切换，则可以远程执行root指令	）
+
+文件属性信息详细说明--inode
+文件属性信息详细说明--时间信息
+时间类型：访问信息、修改时间、改变时间（数据属性发生改变）
+stat test.txt，查看文件属性时间信息
+
+day15 系统文件属性
+find /oldboy -maxdepth 1 -type f -perm 644，查找对应权限的文件
+
+将找出的文件统一删除
+find /oldboy/ -type f -name "*.txt" -delete
+find /oldboy/ -type f -name "*.txt" -exec rm -rf {} \;
+find /oldboy/ -type f -name "*.txt" | xargs rm -f，xargs把一列数据改成一行显示
+
+找出txt结尾的文件，统一压缩处理
+find /oldboy/ -type f -name "*.txt" | xargs tar zcvf /tmp/oldboy.tar.gz
+tar zcvf /tmp/oldboy.tar.gz `find /oldboy/ -type f -name "*.txt"`
+
+文件属性信息--inode
+ctrl+r，快速搜索历史命令
+df -i，查看indoes使用状况
+df，查看blocks使用状况
+
+补充：
+文件属性信息存储在inode中
+文件名称信息存储在上一级目录的block中
+
+文件属性信息--硬链接数
+硬链接，多个门
+ln 链接的源文件 硬链接文件信息
+软链接，快捷方式
+ln -s 链接源文件 软链接的文件信息
+
+软硬链接的区别：
+1. 链接后的文件大小不一致
+2. 链接后的文件类型和权限不一致
+3. 连接后的文件和源文件inode信息有出入，硬链接一直，软链接不一致
+4. 源文件被删除后，硬链接依然有效，软链接失效
+5. 软硬链接创建过程不一致
+
+find / -type f -inum 33584339，利用find命令找到所有硬链接文件
+
+目录不可以创建硬链接
+
+时间相关命令 date
+调整时间格式
+date "+%F %T"
+date "+%y-%m-%d %H:%M:%S"
+date -s ""，设定时间
+date +%F -d "+1day"，显示未来和历史时间 
+ntpdate ntp1.aliyun.com，时间同步
+
+find /oldboy -type f -mtime +10 -delete，删除历史数据（十天前）
+find /oldboy -type f -mtime -10 -delete，删除历史数据（最近十天）
+
+
+统计目录下面有多少子目录
+ll /etc/ | grep -c "^d"
+ll /etc/ | grep "^d" | wc -l
+
+day16 系统正则符号说明
+
+如何确认数据真正删除
+1. 确保文件的硬链接数为0
+2. 确保文件没有被进程占用
+
+$符号
+1. 取变量
+2. 取出列的信息
+awk '{print $3}' /oldboy/oldboy.txt，查看第三列内容
+3. 用户命令提示符
+4. 行的结尾
+
+!符号
+1. 取反
+grep -v "^#" /etc/selinux/config，取反，不看开头是#的行
+2. 取出最近命令
+3. 表示强制处理
+
+|符号和xargs命令
+管道符号
+find /oldboy -tyep f -name "*.txt" | xargs -i cp {} /oldgirl，寻找到的文件拷贝到指定目录（将需要拷贝的内容放到中间{}内）
+find /oldboy -type f -name "*.txt" | xargs -t /oldgirl，寻找到的文件拷贝到指定目录（指定目标文件夹）
+
+补充：如何忽略别名功能：
+1. 使用命令的绝对路径
+2. 在命令执行前加撬棍
+3. 在xargs信息后面命令自动忽略别名
+
+
+#符号
+1. 注释
+2. root提示符
+
+引号
+''，所见即所得（变量不会解析结果）
+""，和''类似，但是会特殊信息进行解析（变量$LANG会解析结果）
+``<==>$()，将引号内的命令先执行，将执行结果给外面
+没有引号，和""类似，但是可以直接识别通配符信息
+
+重定向符号
+>和1> 标准输出重定向
+2> 错误输出重定向
+>> 标准输出追加重定向
+将正确和错误信息保存到一个文件中
+方法一，echo oldboy >> /oldboy/info.log 2>> /oldboy/info.log
+方法二，echo oldboy &> /oldboy/info.log
+方法三，echo oldboy > /oldboy/info.log 2>&1
+< 标准输入重定向，很少用
+只有tr和xargs用过
+<< 标准输入追加重定向，很少用
+cat >> /oldboy.txt<<EOF
+XXX
+XXX
+EOF
+
+路径信息系列
+../ 上一级目录
+./ 当前路径
+~ 返回到家目录
+- 两个目录之间快速切换
+
+逻辑符号
+&&，与逻辑符号，前一个命令执行成功，再执行后一个
+||，或逻辑符号，前一个执行失败，再执行后一个，成功则不执行
+
+系统通配符号，利用通配符号匹配文件名称信息
+* 模糊匹配
+{}
+生成连续序列信息
+echo {1..100}
+echo {a..z}
+生成不连续序列
+echo {1..10..2}
+echo {charles,mandy,mary}
+组合序列
+echo {A,B} {01,02}
+cp /oldboy/oldyboy.txt{,.bak}
+
+正则符号，利用正则符号匹配文件内容信息
+基础正则符号
+^，以什么开头的信息
+$，以什么结尾的信息
+ll -F /etc/ | grep /$，找目录信息
+grep -v "^$" 文件中过滤，剔除空行，-v为取反
+
+扩展正则符号
+
+day17 系统正则符号说明
+.，匹配任意一个字符，且只有一个字符
+*，匹配前一个字符连续出现了0次或者多次
+.*，匹配任意所有信息
+指定具体信息阻止贪婪匹配
+grep "^m.*to" ~/oldboy_test.txt
+
+转义符号\
+echo -e "oldboy01\noldboy02"
+\n，换行符号
+\t，制表符号
+
+[]，匹配多个字符信息
+grep "oldb[oe]y" oldboy.txt，匹配出oldboy和oldbey的信息
+grep "^[Im]" oldboy.txt，匹配出所有以I和m开头的信息
+grep "^[a-Z]" oldboy.txt，找出所有以字母开头的行
+
+[^abc]，表示排除包含a或b或c信息的字符
+^[^abc]，排除包含a或b或c字母开头的行
+
+扩展正则符号（grep和sed不能直接识别，awk、egrep、grep -E、sed -r可以直接识别）
++，匹配前一个字符连续出现了1次或者多次
+grep -Ev "[0-9]+" oldboy.txt，+连续[0-9]数字v取反
+
+|，并且符号，用于匹配多个信息
+grep -E "oldboy|oldbey" oldboy.txt，匹配出oldboy和oldbey的信息
+
+()，后项使用前项
+echo oldboy{01..10}|xargs -n1 | sed -r 's#(.*)#useradd \1#g'| bash，创建用户oldboy1~10
+seq -w 10 | sed -r 's#(.*)#useradd oldboy\1;echo 123456|passwd --stdin oldboy\1#g' | bash，创建完用户，并设定默认密码为123456
+echo 123456 | sed -r "s#(.*)#<\1>#g"，<123456>
+echo 123456 | sed -r "s#(..)(..)(..)#<\1><\2><\3>#g"，<12><34><56>
+
+{}，可以指定字符连续匹配的次数
+x{n,m}，表示前一个字符至少连续出现n次，最多出现m次
+x{n}，表示前一个字符正好连续出现了n次
+x{n,}，表示前一个字符至少连续出现n次，最多出现多少次不限
+x{,m}，表示前一个字符至少连续出现0次，最多出现m次
+
+?，定义匹配前一个字符出现0次或者1次
+
+ip a s eth0 | egrep "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" -o | head -1，筛选出ip地址，还有多种方法
+
+day18 操作系统三剑客命令--sed
+sed命令（善于处理配置文件）
+字符流编辑工具，按照每行中的字符进行处理操作（PS：vi、vim，全屏编辑工具）
+擅长对小文件行进行操作、擅长将文件的内容信息进行修改调整和删除、编写脚本（增、删、改、查）
+
+- 语法信息：sed [参数] '条件-处理方式' 文件
+- 执行原理?
+- 实践操作
+1. 查询信息方法（根据行号查询，根据信息查询）
+
+测试环境：
+cat >person.txt<<EOF
+101,Charles,CEO
+102,Mandy,CTO
+103,Mary,COO
+104,Alice,CFO
+EOF
+
+sed -n '3p' person.txt
+sed -n '1,3p' person.txt
+sed -n '1p;3p' person.txt
+
+sed -n '/Charles/p' person.txt
+sed -n '/Charles/,/Mary/p' person.txt
+sed -n '/Charles/p;/Mary/p' person.txt
+
+2. 添加信息方法
+sed '1i100,oldgirl,UFO' person.txt
+sed -i '1i100,oldgirl,UFO' person.txt
+sed '$a108,oldgirl,UFO' person.txt
+
+p，print，输出信息
+i，insert，插入信息，在指定信息前
+a，append，附加信息，在指定信息后面
+d，delete，删除指定信息
+s，substitute，替换
+c，替换修改制定的一整行信息
+-n，取消默认输出
+-r，识别扩展正则
+-i，真是编辑文件，将内存信息写入磁盘
+-e，识别sed命令多个操作指令
+ps，n和i参数同时使用会将文件内容清空
+
+sed -e '/oldboy/ioldgirl' -e '/oldboy/aolddog' person.txt
+sed '$a100\n101' person.txt
+
+3. 删除信息方法
+sed '3d' person.txt
+sed '2,6d' person.txt
+sed '/oldboy/d' person.txt
+sed '3d;6d' person.txt
+sed '/^$/d' person.txt，删除空行
+
+4. 修改信息方法
+sed 's#test#test2#g' 文件信息
+ip a s eth0 | sed -n '3p' | sed -r 's#^.*net(.*)/24.*#\1#g'
+ip a s eth0 | sed -rn '3s#^.*net(.*)/24.*#\1#gp'
+sed -i.bak 's#test#test2#g' person.txt，在修改的同时生成一个person.txt.bak的备份文件
+ls oldboy*.txt | sed -r 's#(.*)txt#mv & \1jpg#g' | bash，批量修改拓展名	
+rename .jpg .txt oldboy*.jpg，批量修改拓展名
+
+day19 操作系统三剑客命令--awk
+awk命令（善于处理日志文件）
+擅长对列进行操作、进行数据信息统计（排除、查询、统计）
+
+- 语法格式：awk [参数] '模式-动作' 文件
+- 实战操作
+测试环境：
+Miao    Charles    1017635452    :210:21:51
+
+1. 命令查询信息方法：
+按行查找
+awk 'NR==2' awk_test.txt，单行
+awk 'NR==2,NR==4' awk_test.txt，连续多行
+awk 'NR==2;NR==4' awk_test.txt，不连续多行
+
+按字符查找
+awk '/Xiaoyu/' awk_test.txt
+awk '/Xiaoyu/,/Waiwai/' awk_test.txt
+awk '/Xiaoyu/;/Waiwai/' awk_test.txt
+
+高级查找
+awk '/Xiaoyu/{print $1,$3}' awk_test.txt，输出Xiaoyu所在行的第一列和第三列
+awk '/Charles/{print $NF}' awk_test.txt | awk -F ":" '{print $3}'，输出Charles所在行的最后一列中的第三列
+awk -F ":" '/Charles/{print $3}' awk_test.txt，等同于上一个命令
+awk -F "[ :]+" '/Charles/{print $1,$2,$(NF-1)}' awk_test.txt
+awk '$3~/^41/{print $1,$2,$3}' awk_test.txt，第三列中以41开头的信息
+awk '$3~/1$|5$/{print $1,$2,$3}' awk_test.txt，第三列中以1或5结尾的信息
+awk '$3~/[15]$/{print $1,$2,$3}' awk_test.txt，同上一个命令
+awk '$2~/Xiaoyu/{gsub(/:/,"$",$NF);print $NF}' awk_test.txt，将最后一列替换为$210$21$51输出
+
+awk '$0~/^#|^$/' awk_test.txt ，排除空行和注释行
+
+$1 $2 $3，第1、2、3个
+$NF，最后一个
+$(NF-n)，倒数第n个
+$0，整行或整列
+
+2. 对日志信息进行统计或求和
+awk '/^$/{i++,print i}' /etc/services，找出空行数
+awk '/^$/{i++}END{print i}' /etc/services，找出空行数
+awk '$NF~/bash/{i++}END{print i}' /etc/passwd，统计普通用户数
+awk '/Failed password/{i++}END{print i}' /etc/secure，统计登录密码错误的次数
+awk -F ":" 'BEGIN{print "第一次总额","第三次总额"}{a=a+$2;b=b+$4}END{print a,b}' awk_test.txt，求和
+
+awk模式概念说明
+普通模式
+1. 正则表达式作为模式
+2. 利用标价匹配信息NR==2
+3. 范围模式NR==2,NR==10
+特殊模式
+BEGIN{}，在awk执行前，可以显示表头，可以用于计算，可以使用内置变量
+END{}，在awk执行之后
+
+yum install -y lrzsz，windows和linux文件传输
+
+day20 操作系统用户管理
+系统的启动流程
+Centos6
+1. 加电自检
+2. mbr引导，读取磁盘的mbr存储记录信息，引导系统启动
+3. grup菜单，选择启动的内核，进行单用户模式重置密码
+4. 加载系统内核信息，可以更好的使用内核控制硬件
+5. 第一个进程运行起来 init
+6. 加载系统运行级别/etc/inittab
+7. 初始化脚本运行，初始化系统主机名称和网卡信息
+8. 运行系统特殊脚本，服务运行的脚本
+9. 运行mingetty进程，显示登陆界面
+Centos7
+1. 加电自检
+2. mbr引导，读取磁盘的mbr存储记录信息，引导系统启动
+3. grup菜单，选择启动的内核，进行单用户模式重置密码
+4. 加载系统内核信息，可以更好的使用内核控制硬件
+5. 第一个进程运行起来 systemd（服务启动时，同时一起启动）
+6. 读取系统启动文件 /etc/systemd/system/default.target
+7. 读取系统初始化文件 /user/lib/sysetmd/system/sysinit.target
+8. 使服务器开机自启动 /etc/systemd/system 加载此目录中的信息，实现服务开机自动启动
+9. 运行mingetty进程，显示登陆界面
+
+
+文件权限配置的结论：
+1. root用户对所有文件有绝对的权限，只要有执行权限，root用户可以无敌存在
+2. 对于文件来说，写的权限和执行的权限，都需要有读权限配置
+3. 如果想对文件进行操作，必须对文件赋予读的权限
+4. 一个普通文件默认权限：644，保证属主用户对文件可以编辑，保证其他用户可以读取文件内容
+
+目录权限配置的结论
+1. root用户对目录信息有绝对权限
+2. 对于目录来说，写的权限和读的权限，都需要执行权限的配合
+3. 如果想对目录进行操作，必须对目录赋予执行权限
+4. 一个目录文件默认权限：755，保证属主用户对目录进行编辑，保证其他用户可以读取目录中的信息，并可以进入目录
+
+修改权限：
+属主，user，u
+属组，group，g
+其他，other，o
+chmod u+r/w/x u-r/w/x u=rw
+chmod 761
+chmod a=x
+
+修改umask值可以修改默认目录文件权限，umask默认值0022
+默认文件权限：666-022=644
+umask值是奇数：666-033=633+11=644
+umask值是偶数：666-022=644
+默认目录权限：777-022=755
+umask值是奇数：777-033=744
+umask值是偶数：777-022=755
+
+永久修改umask信息，vim /etc/profile
+
+useradd oldgirl，/home/oldgirl/目录中的数据内容会参考/etc/skel目录中的信息
+
+day21 操作系统用户权限
+
+- 用户目录中特殊文件
+.bash_history，历史命令记录文件，保存在磁盘中
+history，历史命令保存在内存中
+history，清空内存中历史命令
+.viminfo，vim样式设置
+
+- 系统中和用户相关的文件
+/etc/passwd，记录系统用户信息文件
+第一列，用户名
+第二列，用户密码信息
+第三列，uid信息
+第四列，gid信息
+第五列，注释信息
+第六列，用户目录信息
+第七列，用户登录系统方式
+	/bin/bash，通用的解释器
+	/usr/bin/sh，等价于/bin/bash
+	/usr/bin/bash，等价于/bin/bash
+	/sbin/nologin，无法登录系统
+	/usr/sbin/nologin，无法登录系统
+/etc/shadow，系统用户密码文件
+/etc/group，组用户记录文件
+/etc/gshadow，组用户密码信息
+
+创建用户
+useradd oldboy -M -s /sbin/nologin -u 2000 -g Alex -G Charles -c "manager database"
+-M，不创建家目录
+-s，指定使用shell方式
+-u，指定用户uid数值信息
+-g，指定用户所属的主要组信息
+-G，指定用户所属的附属组信息
+-c，添加指定用户注释说明
+
+修改用户信息
+usermod
+-s，修改用户登录方式
+-g，修改用户的主要组信息
+-G，修改用户的附属组信息
+-c，修改用户的注释信息
+-u，修改用户uid数值信息
+
+删除用户信息
+userdel -r，彻底删除用户以及用户的家目录
+
+用处不大
+groupadd，创建用户组
+groupmod，修改用户组信息
+groupdel，删除用户组信息
+
+chown，修改属主和属组信息
+chown oldboy.root /etc/hosts，修改文件属主和属组信息
+chown -R Alex01.Alex01 oldboy_dir，递归修改目录&目录内文件的属主和属组信息
+
+id，显示用户信息
+w，显示正在登录系统的用户信息
+USER，什么用户登录系统
+TTY，登录方式
+pts/x，远程登录
+tty1，本地登录
+echo "message" > /dev/pts/1，发送信息给pts/1用户
+FROM，从哪里登录服务器
+LOGIN，登录时间
+IDLE，空闲时间
+JCPU PCPU，用户操作系统消耗的CPU资源时间
+WHAT，用户在干什么
+
+last，最近谁登录系统
+lastlog，显示所有用户最近一次远程登录的信息
+
+用户权限赋予
+1. 直接切换root账号，su -root
+2. 给文件赋予权限
+3. root赋予普通用户权限
+a. visudo，93行添加，oldboy ALL=(ALL) /usr/sbin/useradd, /user/bin/rm
+b. 验证已获得的权限sudo -l
+c. sudo useradd Alex21
+
+day22 系统定时任务
+su root，部分环境变量切换有变化
+su - root，全部环境变量切换有变化
+
+sudo功能配置说明
+1. 给更多权限
+oldboy ALL=(ALL) /user/sbin/*, !/user/sbin/visudo, /usr/bin/*
+2. 不需要账号密码
+oldboy ALL=(ALL) NOPASSWD: /user/sbin/*, !/user/sbin/visudo, /usr/bin/*
+
+设置特殊权限位
+rwx-w---x，9个权限位，实际有12个权限位
+setuid权限位设置，将文件属主拥有的能力，分配给所有人
+chmod u+s /bin/cat
+chmod 4755 /bin/cat
+setgid权限位设置，将文件属组拥有的能力，分配给所有用户组
+sticky bit粘滞位，可以将不同用户信息放置到共享目录中，实现不同用户数据可以互相查看，但是不可以互相随意修改
+chmod o+t 目录信息
+chmod 1777 目录信息
+
+防范系统中的重要文件不被修改
+1. 给文件加锁，使root用户也不可以修改
+chattr +i /etc/passwd，设置方法
+chattr -i /etc/passwd，解锁命令
+mv /bin/chattr /root/charles，修改指令名称
+
+定时服务
+cronie，实现定时任务功能
+atd，只能一次设置定时功能
+anacron，应用在家用电脑
+
+rpm -ivh 软件包.rpm，手动安装软件
+
+补充说明，如何让linux和windows主机之间传输数据
+yum install -y lrzsz
+在linux上进行操作
+rz -y，从windows上下载重要数据信息
+sz -y 数据信息，从linux上上传重要数据到windows
+
+定时任务实现方式
+日志文件需要定期进行切割处理
+
+系统特殊目录，将脚本放到对应目录后自动执行：
+/etc/cron.hourly
+/etc/corn.daily
+/etc/corn.weekly
+/etc/corn.monthly
+
+用户定时任务
+crontab -l，查看
+crontab -e，编辑
+vim /var/spool/cron/root，root用户设置的定时任务配置文件
+vim /var/spool/cron/oldboy，oldboy用户设置的定时任务配置文件
+
+环境确认
+systemctl status crond
+
+cat /etc/crontab，查看规则
+00 02 * * *，每天2点
+*/5 * * * *，每5分钟
+01-05 02 * * *，2:01, 2:02, 2:03, 2:04, 2:05
+00 14,20 * * *，每天14和20点
+20/10 01 * * *，1点20开始每隔10分钟执行一次
+
+定时任务排查方法
+cat /var/spool/cron/root，检查文件
+cat /car/log/cron，检查日志
+
+规范：
+1. 需要有注释
+2. 尽量使用绝对路径
+3. 命令需要使用绝对路径（定时任务执行时，识别的PATH信息只有/usr/bin:/bin）
+4. 编写定时任务时，可以将输出到屏幕上的信息保存到黑洞里，避免占用磁盘空间
+* * * * * sh test.sh &>/dev/null
+5. 编写定时任务，尽量不要产生屏幕输出信息
+6. 多个定时任务命令，最好使用脚本实现
+7. 定时任务中无法识别任务中的一些特殊符号
+* * * * * /bin/date "+\%F \%T" > /tmp/time.txt，使用转义字符
+利用脚本编写任务
+
+补充：
+定时任务输出到屏幕上的信息都会以邮件的方式告知用户，mail放在如下目录/var/spool/mail/root，若关闭systemctl stop postfix，则会在如下目录中生成很多草稿/var/spool/postfix/maildrop/*
+
+day23 操作系统磁盘管理
+磁盘大小计算
+扇区大小*扇区数量（fdisk -l）
+柱面大小*柱面数量
+
+Raid0, Raid1, Raid01, Raid10, Raid5
+
+LVM 实现分区可以弹性扩容和缩容，现在用处不大
+
+磁盘分区方法，mbr，gpt
+
+day24 操作系统磁盘管理
+
+分区
+1. 插入新硬盘10G
+2. 检查是否识别到新磁盘 ll /dev/sdb
+3. 对磁盘进行分区处理
+fdisk -l，查看分区信息
+fdisk /dev/sdb，对磁盘进行分区
+
+d，删除分区*****
+g，创建新的GPT分区表
+l，列出可以分区的类型
+m，输出帮助菜单
+n，新建一个分区*****
+p，输出分区结果信息*****
+q，不保存退出
+t，改变分区的系统id==改变分区类型
+u，改变分区方式，是否按照扇区划分
+w，保存退出，将分区的信息写入分区表*****
+
+4. 让系统可以加载识别分区信息
+partprobe /dev/sdb
+
+格式化
+mkfs.xfs /dev/sdb1
+mkfs -t xfs /dev/sdb2
+
+ext3/4 centos6
+xfs centos7 格式化效率较高，数据存储效率提升（数据库服务器）
+
+挂载应用
+mount /dev/sdb1 /mnt
+df -h，检查是否挂载ok
+
+自动挂载
+1. 放入/etc/rc.local
+2. /etc/fstab中进行设置
+uuid，挂载点，指定文件系统格式，defaults挂载参数，0不备份磁盘，0不检查磁盘
+blkid获取UUID
+
+分区大于2TB的硬盘
+1. 使用parted命令进行分区
+2. 使用parted命令进行分区
+mklabel gpt，创建一个分区表，gpt可以创建多余4个的主分区
+print，显示分区信息
+mkpart，创建一个分区
+quit，退出分区状况
+3. 加载磁盘分区
+partprobe /dev/sdc
+4. 格式化
+mkfs.xfs /dev/sdc1
+5. 挂载
+
+企业磁盘常见问题
+1. 删除没用的数据
+2. 找出大的没用数据
+find / -type f -size +xxx
+du -sh /* | sort -h
+3. df -i，inodes用完
+
+创建1G大文件
+dd if=/dev/zero of=/tmp/oldboy.txt bs=10M count 100
+
+sort -n -k2，按照数字，按照第二列进行排序
+
+如何调整swap空间
+1. dd if=/dev/zero of=/tmp/1G bs=100M count=10
+2. mkswap /tmp/1G，将指定空间作为swap空间
+3. swapon /tmp/1G，加载使用swap空间
