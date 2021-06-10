@@ -1,0 +1,142 @@
+第1章 网络基础
+
+nslookup，域名解析命令
+traceroute，路由跟踪命令
+
+第2章 SSH服务
+
+scp远程复制
+下载，scp root@192.168.44.2:/root/test.txt .
+上传，scp -r /root/123/ root@192.168.44.2/root
+
+sftp文件传输和登录
+sftp root@192.168.4.2
+ls，查看服务器
+cd，切换服务器目录
+lls，查看本地数据
+lcd，切换本地目录
+get，下载
+put，上传
+
+密钥对验证
+1. ssh-keygen -t rsa，client端生成秘钥
+2. 把公钥传到服务器端
+3. cat id_rsa.pub >> /root/.ssh/authorized_keys，将公钥上传到服务器端
+4. chmod 600 authorized_keys，修改文件权限
+
+第3章 DHCP服务
+
+DHCP原理
+
+端口号
+ipv4 udp67，udp68
+ipv6 udp546，udp547
+
+配置dhcp服务器
+vi /etc/dhcp/dhcpd.conf
+service dhcpd restart
+
+配置客户端
+vim /etc/sysconfig/network-scripts/ifcfg-eth0
+service network restart
+
+服务器端查看分配的地址
+vim /var/lib/dhcpd/dhcpd.leases
+客户端查看分配的地址
+vim /var/lib/dhclient/dhclient-eth0.leases
+
+第4章 vsftp服务
+
+主动模式和被动模式
+主动模式端口为20，被动模式是随机端口
+主动模式（默认模式），client端防火墙可能会屏蔽20端口，client可能无法访问ftp服务
+被动模式，client端主动访问服务器，服务器端口可控，防火墙设定可控，不存在访问不了的问题
+
+配置文件，/etc/vsftpd/vsftpd.conf
+
+用户控制列表文件
+/etc/vsftpd/ftpusers
+/etc/vsftpd/user_list
+
+匿名访问注意事项
+1. 默认上传目录：/var/ftp/pub/
+2. 如果允许上传，需要服务权限和系统目录权限同时允许
+3. vsftp服务的伪用户是ftp
+
+本地用户访问
+1. 本地用户账号，如果允许上传，需要服务权限和系统目录权限同时允许
+2. chroot_local_user=YES，开启用户目录限制，把用户限制在用户主目录中
+3. chroot_list_enable=YES
+chroot_list_file=/etc/vsftpd/chroot_list，此文件中的用户可以随便切换目录
+
+虚拟用户访问
+1. 添加虚拟用户口令文件
+2. 生成虚拟用户口令认证文件（yum -y install db4-utils，db_load指令将文本转变成认证数据库）
+3. 编辑vsftpd的PAM认证文件，vi /etc/pam.d/vsftpd
+4. 建立本地映射用户并设置宿主目录权限
+useradd -d /home/vftproot -s /sbin/nologin vuser
+chmod 755 /home/vftproot
+5. 修改配置文件
+guest_enable=YES
+guest_username=vuser
+pam_service_name=vsftpd
+6. 重启vsftpd服务，并测试
+7. 调整虚拟用户权限
+anonymous_enable=NO
+anon_upload_enable=YES
+anon_mkdir_write_enable=YES
+anon_other_write_enable=YES
+
+为每个虚拟用户配置不同的权限
+1. 修改配置文件
+user_config_dir=/etc/vsftpd/vusers_dir
+2. 为每个虚拟用户建立配置文件
+vim /etc/vsftpd/vusers_dir/cangls
+anon_upload_enable=YES
+anon_mkdir_write_enable=YES
+anon_other_write_enable=YES
+local_root=/tmp/vcangls
+
+第5章 samba服务
+
+samba安装
+service smb start
+service nmb start
+
+相关文件
+/etc/samba/smb.conf
+/etc/samba/lmhosts
+/etc/samba/smbpasswd
+/etc/samba/smbusers，用户别名，用于适应不同操作系统中用户名习惯
+testparm，监测配置文件是否正确
+
+share级别：
+chown nobody /study/，share方式共享目录时，需要将目录改为所有用户可以访问
+创建的共享目录需要修改所有者，否则无法正常访问（系统权限和配置文件里的权限都需要允许）
+
+linux客户端访问
+smbclient -L //192.168.123.210，查看主机共享资源
+smbclient //192.168.123.210/share，访问共享目录，指令类似ftp
+
+user级别：
+smbpasswd -a username，为系统用户单独设定samba密码
+ftp建议使用虚拟用户，从安全性考虑，虚拟用户不可以登录系统
+pdbedit -a -u username，同smbpasswd命令
+pdbedit -L，查看已经存在samba用户
+pdbedit -x -u username，删除samba用户
+smbpasswd -x username，删除samba用户
+
+多用户，多用户，多权限设定
+1. 先设定文件夹，和samba配置档案（可查看，可写），不设定特定用户权限
+2. 再设定文件夹权限700，chomd 700 share_folder
+3. 创建samba密码，smbpasswd -a username
+4. 使用acl指令设定特定用户权限，setfacl -m u:username:rwx share_folder/
+5. 查询权限设定结果，getfacl share_folder/
+
+mount -t cifs -o username=username //ip/share_folder /local_folder，挂载到本地使用
+
+第6章 Windows服务和路由交换
+1. 计算机基础
+2. 网络基础
+3. windows server 2008
+4. Cisco高级交换路由技术
